@@ -3,23 +3,28 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/mxygem/siprectify/internal/sip"
 )
 
 func main() {
 	var (
-		sipPort = flag.Int("sip-port", 5060, "SIP listening port")
-		rtpBase = flag.Int("rtp-base", 5004, "Base port for RTP media (will use base and base+1)")
-		debug   = flag.Bool("debug", false, "Enable debug logging")
+		sipPortFlag = flag.Int("sip-port", 5060, "SIP listening port")
+		rtpBaseFlag = flag.Int("rtp-base", 5004, "Base port for RTP media (will use base and base+1)")
+		debug       = flag.Bool("debug", false, "Enable debug logging")
 	)
 	flag.Parse()
 
 	if *debug {
 		log.SetFlags(log.LstdFlags | log.Lshortfile)
 	}
+	sipPort := *sipPortFlag
+	rtpBase := *rtpBaseFlag
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -33,10 +38,12 @@ func main() {
 		cancel()
 	}()
 
-	log.Printf("siprectify starting: SIP listener on :%d, RTP base port %d", *sipPort, *rtpBase)
+	log.Printf("siprectify starting: SIP listener on :%d, RTP base port %d", sipPort, rtpBase)
 
-	// TODO: Step 2 - Initialize SIP server
-	// sip.New(*sipPort)
+	server := sip.New(sipPort)
+	if err := server.ListenAndServe(ctx, "udp", fmt.Sprintf("127.0.0.1:%d", sipPort)); err != nil {
+		log.Fatalf("listen and serve: %s", err)
+	}
 
 	// TODO: Step 3 - Initialize RTP receiver
 	// rtp.New(*rtpBase)
