@@ -8,7 +8,7 @@ Minimal [SIPREC](https://datatracker.ietf.org/doc/html/rfc6341) Recording Server
 
 Key RFCs:
 - **RFC 3261**: SIP (Session Initiation Protocol) — signaling layer
-- **RFC 3550**: RTP (Real-time Transport Protocol) — media layer  
+- **RFC 3550**: RTP (Real-time Transport Protocol) — media layer  ([pion has a great knowledge base](https://webrtcforthecurious.com/))
 - **RFC 6341**: SIPREC core — recording session conventions
 - **RFC 7866**: SIPREC metadata — participant and stream identification
 
@@ -40,8 +40,8 @@ siprectify/
 
 ## What's Working
 
-- [ ] **Step 1**: Repo hygiene, README, and dependency setup *(in progress)*
-- [ ] **Step 2**: SIP signaling layer (listen on UDP/5060, respond to INVITE with 200 OK)
+- [X] **Step 1**: Repo hygiene, README, and dependency setup
+- [X] **Step 2**: SIP signaling layer (listen on UDP/5060, respond to INVITE with 200 OK) *(in progress)*
 - [ ] **Step 3**: RTP receiver (open UDP sockets, parse RTP packets, log sequence/timestamp)
 - [ ] **Step 4**: Codec decode & WAV output (G.711 µ-law/A-law to 16-bit PCM)
 - [ ] **Step 5**: SIPREC detection (Require: siprec header, multipart body, metadata parsing)

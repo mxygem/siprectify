@@ -40,7 +40,7 @@ func main() {
 
 	log.Printf("siprectify starting: SIP listener on :%d, RTP base port %d", sipPort, rtpBase)
 
-	server := sip.New(sipPort)
+	server := sip.New(sipPort, rtpBase)
 	if err := server.ListenAndServe(ctx, "udp", fmt.Sprintf("127.0.0.1:%d", sipPort)); err != nil {
 		log.Fatalf("listen and serve: %s", err)
 	}

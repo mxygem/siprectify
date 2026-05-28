@@ -2,6 +2,7 @@ package sip
 
 import (
 	"log"
+	"log/slog"
 
 	"github.com/emiago/sipgo"
 	"github.com/emiago/sipgo/sip"
@@ -11,7 +12,7 @@ type Server struct {
 	*sipgo.Server
 }
 
-func New(port int) *Server {
+func New(sipPort, rtpBasePort int) *Server {
 	ua, err := sipgo.NewUA(sipgo.WithUserAgent("siprectiv"))
 	if err != nil {
 		log.Fatalf("creating new UA: %v", err)
@@ -22,29 +23,34 @@ func New(port int) *Server {
 		log.Fatalf("creating new server: %v", err)
 	}
 
-	srv.OnInvite(onInvite)
-	srv.OnAck(onAck)
-	srv.OnBye(onBye)
+	s := &Server{srv}
 
-	return &Server{srv}
+	srv.OnInvite(s.onInvite)
+	srv.OnAck(s.onAck)
+	srv.OnBye(s.onBye)
+
+	return s
 }
 
-func onInvite(req *sip.Request, tx sip.ServerTransaction) {
-	log.Printf("reached oInvite")
-	log.Printf("%s request from %s", req.Method, &req.Laddr)
-	log.Printf("msg: %s", string(req.MessageData.Body()))
+func (s *Server) onInvite(req *sip.Request, tx sip.ServerTransaction) {
+	slog.Info("reached onInvite", "method", req.Method, "address", &req.Laddr, "body", string(req.MessageData.Body()))
 
 	resp := sip.NewResponseFromRequest(req, 200, "OK", req.MessageData.Body())
-	resp.AppendHeader(sip.NewHeader("Content-Type", "application/sip"))
+	resp.AppendHeader(sip.NewHeader("Content-Type", "application/sdp"))
 
-	tx.Respond(resp)
+	if err := tx.Respond(resp); err != nil {
+		slog.Error("responding to invite", "error", err)
+	}
 }
 
-func onAck(req *sip.Request, tx sip.ServerTransaction) {
-	log.Println("reached onAck")
+func (s *Server) onAck(req *sip.Request, tx sip.ServerTransaction) {
+	slog.Info("reached onAck", "method", req.Method, "address", &req.Laddr, "body", string(req.MessageData.Body()))
 }
 
-func onBye(req *sip.Request, tx sip.ServerTransaction) {
-	log.Println("reached onBye")
-	tx.Respond(sip.NewResponseFromRequest(req, 200, "OK", nil))
+func (s *Server) onBye(req *sip.Request, tx sip.ServerTransaction) {
+	slog.Info("reached onBye", "method", req.Method, "address", &req.Laddr, "body", string(req.MessageData.Body()))
+
+	if err := tx.Respond(sip.NewResponseFromRequest(req, 200, "OK", nil)); err != nil {
+		slog.Error("responding to bye", "error", err)
+	}
 }
